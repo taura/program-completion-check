@@ -2,8 +2,12 @@
 import io
 import re
 import sys
+import unicodedata
+import warnings
 import pandas as pd
 import numpy as np
+
+
 
 GC = None
 
@@ -178,19 +182,66 @@ def validate_program_courses(url, sheet=0):
     df["終了年度"] = set_default(df["終了年度"], 9999, int)
     return df
 
-def do_check(program_students, utas_grade, program_courses):
+def normalize_key(x, width=15):
+    """
+    学籍番号などのキー正規化
+
+    - 全角 → 半角（NFKC）
+    - 純数字なら0埋めして width 桁
+    - width 超は警告
+    - NaN はそのまま返す
+    """
+    if pd.isna(x):
+        return x
+    # 文字列化 + 前後空白除去
+    s = str(x).strip()
+    # Unicode正規化（全角→半角）
+    s = unicodedata.normalize("NFKC", s)
+    # 純数字なら0埋め
+    if s.isdigit():
+        if len(s) >= width:
+            warnings.warn(f"コードが {width} 文字以上あります: {s}")
+            return s
+        return s.zfill(width)
+    return s
+
+def do_check(program_students, utas_grade, program_courses,
+             req_credits):
+    """
+    program_students : dataframe
+    utas_grade : dataframe
+    program_courses : dataframe
+    req_credits : 認定に必要なクレジット
+    """
+    ps = program_students
+    ug = utas_grade
+    pc = program_courses
+    ps["学籍番号key"] = ps["学籍番号"].apply(normalize_key)
+    ug["学籍番号key"] = ug["学籍番号"].apply(normalize_key)
+    # 登録学生一覧にUTAS成績をjoin
     sg = pd.merge(program_students, utas_grade, how="left",
-                  left_on="学籍番号", right_on="学籍番号", suffixes=("_", ""))
+                  on="学籍番号key", suffixes=("_", ""))
+    # それに認定科目一覧をjoin
+    sg["科目コードkey"] = sg["科目コード"].apply(normalize_key)
+    pc["科目コードkey"] = pc["科目コード"].apply(normalize_key)
     df = pd.merge(sg, program_courses, how="left",
-                  left_on="科目コード", right_on="科目コード", suffixes=("", "_"))
-    df["認定対象"] = np.where((df["開始年度"] <= df["年度"]) & (df["年度"] <= df["終了年度"]), 1, np.nan)
+                  on="科目コードkey", suffixes=("", "_"))
+    df["認定対象"] = np.where((df["開始年度"] <= df["年度"])
+                              & (df["年度"] <= df["終了年度"]), 1, np.nan)
     df["認定"] = df["認定対象"].where(df["合否区分"] == "合格")
     df["認定単位"] = df["認定"] * df["単位数"]
     df["学生氏名プログラム"] = df["学生氏名_"]
     df["学生氏名UTAS"] = df["学生氏名"]
-    credit = df.groupby(["学籍番号", "学生氏名プログラム",
-                         "学生氏名UTAS", "学生氏名カナ"],
+    df["学籍番号プログラム"] = df["学籍番号_"]
+    df["学籍番号UTAS"] = df["学籍番号"]
+    credit = df.groupby(["学籍番号key",
+                         "学籍番号プログラム",
+                         "学籍番号UTAS",
+                         "学生氏名プログラム",
+                         "学生氏名UTAS",
+                         "学生氏名カナ"],
                         dropna=False)[["認定単位"]].sum()
+    credit["認定結果"] = np.where(credit["認定単位"] >= req_credits, 1, np.nan)
     result_xlsx = "認定単位.xlsx"
     with pd.ExcelWriter(result_xlsx) as writer:
         credit.to_excel(writer, sheet_name="認定単位")
