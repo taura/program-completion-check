@@ -3,10 +3,7 @@
 ## これは何?
 
 * WINGSなどのプログラムの修了を判定するツール
-* https://colab.research.google.com/github/taura/program-completion-check/blob/main/src/check.ipynb を踏むと Google Colab という作業環境のページが開かれる
-
-      [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/taura/program-completion-check/blob/main/src/check.ipynb)
-
+* [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/taura/program-completion-check/blob/main/src/check.ipynb) https://colab.research.google.com/github/taura/program-completion-check/blob/main/src/check.ipynb を踏むと Google Colab という作業環境のページが開かれる
 * あとは指示のとおりに実行すれば良いはず
 * 個人ごとに別の環境になるので他の人に影響するなどの心配は不要
 
