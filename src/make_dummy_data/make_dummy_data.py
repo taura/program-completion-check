@@ -457,8 +457,8 @@ def make_random_program_courses(courses, m, rg):
         end = rg.choice(year_choices)
         if pd.notnull(start) and pd.notnull(end) and end < start:
             end = start
-        p_courses.append((code, start, end))
-    columns = ["科目コード", "開始年度", "終了年度"]
+        p_courses.append((code, course, start, end))
+    columns = ["科目コード", "科目名", "開始年度", "終了年度"]
     df = pd.DataFrame(p_courses, columns=columns)
     return df
 
@@ -490,7 +490,7 @@ def main():
     program_courses = make_random_program_courses(courses, n_program_courses, rg)
     program_students = make_random_program_students(students, n_program_students, rg)
     utas_grade.to_excel("utas_grade.xlsx", index=False)
-    program_courses.to_excel("program_courses.xlsx", index=False)
-    program_students.to_excel("program_students.xlsx", index=False)
+    program_courses.to_excel("科目一覧.xlsx", index=False)
+    program_students.to_excel("登録学生一覧.xlsx", index=False)
 
 main()

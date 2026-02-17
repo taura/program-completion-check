@@ -181,7 +181,8 @@ def validate_program_subjects(url, sheet=0):
 def do_check(program_students, utas_grade, program_courses):
     sg = pd.merge(program_students, utas_grade, how="left",
                   left_on="学籍番号", right_on="学籍番号", suffixes=("_", ""))
-    df = pd.merge(sg, program_courses, how="left", left_on="科目コード", right_on="科目コード")
+    df = pd.merge(sg, program_courses, how="left",
+                  left_on="科目コード", right_on="科目コード", suffixes=("", "_"))
     df["認定対象"] = np.where((df["開始年度"] <= df["年度"]) & (df["年度"] <= df["終了年度"]), 1, np.nan)
     df["認定"] = df["認定対象"].where(df["合否区分"] == "合格")
     df["認定単位"] = df["認定"] * df["単位数"]

@@ -34,8 +34,9 @@ pd.set_option("display.max_rows", None)
 """ """
 
 """ md
-# 当該プログラムに登録している学生のリスト (GoogleドライブのExcelまたはスプレッドシート) を設定
+# 登録学生一覧の設定
 
+* 当該プログラムに登録している学生のリスト (GoogleドライブのExcel, GoogleドライブのGoogleスプレッドシート, colabにアップしたExcelのいずれか) を設定
 * プログラム担当者が作る (おそらく始めからどこかに存在している) 想定
 
 * **以下の `PROGRAM_STUDENTS_URL = "..."` を自分が使いたいものに変更してください**
@@ -49,7 +50,7 @@ pd.set_option("display.max_rows", None)
   * Googleドライブ上のGoogleスプレッドシートのURL
   * colabにアップロードされたファイル名
 * Googleドライブ上のファイルURLの取得方法: フォルダ上でそのファイルを右クリックして「共有」 -> 「リンクをコピー」するか, ファイルを開いた状態で「共有」の右側の▼ -> 「リンクをコピー」でURLを取得します
-  * URL末尾の `edit?usp=sharing` みたいな部分はなくてもOK (多分)
+  * URL末尾の `edit?usp=sharing` みたいな部分はあってもなくてもOK (多分)
 * colabにファイルをアップロードする方法
   * 左側のアイコンからフォルダのアイコンを選んでフォルダ内容を表示し, 上にあるアップロードボタンを押す
 
@@ -71,7 +72,9 @@ pd.set_option("display.max_rows", None)
 
 """ code kernel=python """
 # 本番実行時は "..." を書き換えて設定してください
-PROGRAM_STUDENTS_URL = "https://docs.google.com/spreadsheets/d/1HUi7QBmFGvM9QReHjTwFRLCH1-UYqYVG/"
+PROGRAM_STUDENTS_URL = "https://docs.google.com/spreadsheets/d/1Abeszk5-iJokwxGV6W115uUX5Bq2lziB/"
+# colabに直接アップした場合はこちら
+#PROGRAM_STUDENTS_URL = "登録学生一覧.xlsx"
 PROGRAM_STUDENTS_SHEET = 0
 
 PROGRAM_STUDENTS = pcc.validate_program_students(PROGRAM_STUDENTS_URL, sheet=PROGRAM_STUDENTS_SHEET)
@@ -80,9 +83,9 @@ PROGRAM_STUDENTS.head(5)
 """ """
 
 """ md
-# UTAS から抽出した成績表 (Googleドライブ上のExcelまたはスプレッドシート) を設定
+# UTAS から抽出した成績表の設定
 
-* これは本部学務課から送られてくる想定
+* これは本部学務課から送られてくる, なにもいじらなくてよい想定
 * `UTAS_GRADE_URL` に関する注意は上記を参照
 
 * 必須フィールド (以下以外に余分なフィールドがあっても構いません)
@@ -107,6 +110,8 @@ PROGRAM_STUDENTS.head(5)
 """ code kernel=python """
 # 本番実行時は "..." を書き換えて設定してください
 UTAS_GRADE_URL = "https://docs.google.com/spreadsheets/d/1Qq31omlr3QT2kjPzzxEjcIfbWLTTDZzx/"
+# colabに直接アップした場合はこちら
+#UTAS_GRADE_URL = "utas_grade.xlsx"
 UTAS_GRADE_SHEET = 0
 
 UTAS_GRADE = pcc.validate_utas_grade(UTAS_GRADE_URL, sheet=UTAS_GRADE_SHEET)
@@ -115,23 +120,28 @@ UTAS_GRADE.head(5)
 """ """
 
 """ md
-# 当該プログラムの科目表 (Googleドライブ上のExcelまたはスプレッドシート) を設定
+# 科目一覧の設定
 
+* 当該プログラムの科目一覧 (Googleドライブ上のExcelまたはスプレッドシート) を設定
 * プログラム担当者が作る想定 (おそらく始めからそのようなファイルがある)
 
 * 必須フィールド (以下以外に余分なフィールドがあっても構いません)
   * **科目コード (形式は UTAS の科目コードと合わせる)**
+  * **科目名**
   * **開始年度**
   * **終了年度**
 
 * TODO
   * 科目コードの表記ゆれに対応したい (そうする予定)
+  * 開始から終了だけでなく年度ごとに指定する(2023, 2025のような)パターンに対応したい (そうする予定)
 
 """
 
 """ code kernel=python """
 # 本番実行時は "..." を書き換えて設定してください
-PROGRAM_COURSES_URL = "https://docs.google.com/spreadsheets/d/1QVKEbxW_Qg94rJPgejfiTyz5Ohug4QEr/"
+PROGRAM_COURSES_URL = "https://docs.google.com/spreadsheets/d/1NIOPkmqLLK6MgkvL3NMcGL1u2KDK8Ykv/"
+# colabに直接アップした場合はこちら
+#PROGRAM_COURSES_URL = "科目一覧.xlsx"
 PROGRAM_COURSES_SHEET = 0
 
 PROGRAM_COURSES = pcc.validate_program_subjects(PROGRAM_COURSES_URL, sheet=PROGRAM_COURSES_SHEET)
