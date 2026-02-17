@@ -144,7 +144,7 @@ PROGRAM_COURSES_URL = "https://docs.google.com/spreadsheets/d/1NIOPkmqLLK6MgkvL3
 #PROGRAM_COURSES_URL = "科目一覧.xlsx"
 PROGRAM_COURSES_SHEET = 0
 
-PROGRAM_COURSES = pcc.validate_program_subjects(PROGRAM_COURSES_URL, sheet=PROGRAM_COURSES_SHEET)
+PROGRAM_COURSES = pcc.validate_program_courses(PROGRAM_COURSES_URL, sheet=PROGRAM_COURSES_SHEET)
 print(f"{PROGRAM_COURSES.size} 行あります (先頭5行は以下です)")
 PROGRAM_COURSES.head(5)
 """ """

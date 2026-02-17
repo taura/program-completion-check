@@ -170,9 +170,9 @@ def validate_utas_grade(url, sheet=0):
     df = check_columns(df, cols)
     return df
 
-def validate_program_subjects(url, sheet=0):
+def validate_program_courses(url, sheet=0):
     df = open_sheet(url, sheet)
-    cols = ["科目コード", "開始年度", "終了年度"]
+    cols = ["科目コード", "科目名", "開始年度", "終了年度"]
     df = check_columns(df, cols)
     df["開始年度"] = set_default(df["開始年度"], 0,    int)
     df["終了年度"] = set_default(df["終了年度"], 9999, int)
