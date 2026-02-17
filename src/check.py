@@ -40,6 +40,8 @@ pd.set_option("display.max_rows", None)
 
 * **以下の `PROGRAM_STUDENTS_URL = "..."` を自分が使いたいものに変更してください**
 * 以下はこちらで用意した誰でも読めるものになっているので試しにそのまま実行してみてもOK
+* 初めて実行する時に窓が出てきて "Allow this notebook to access your Google credentials?" と聞かれるので許可 "Allow" して下さい
+* 別の小窓が出てきて「Third-party authored notebook code に再ログインしようとしています」「Third-party authored notebook code が Google アカウントへのアクセスを求めています」みたいなことを聞かれるので「次へ」や「続行」を押して先へ進んで下さい (ボタンを押すためにスクロールする必要があるかも知れません)
 
 * **<font color=red>注意 (重要)</font>**
 * `PROGRAM_STUDENTS_URL` は以下のいずれかです
