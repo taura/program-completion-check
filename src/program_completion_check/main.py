@@ -4,10 +4,6 @@ import re
 import sys
 import pandas as pd
 import numpy as np
-import gspread
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaIoBaseDownload
-
 
 GC = None
 
@@ -16,6 +12,7 @@ def get_gclient():
     Google spreadsheetのデータを開く
     colab でもローカルでも実行できるように
     """
+    import gspread
     in_colab = 0
     try:
         # Colab
@@ -79,6 +76,8 @@ def get_creds_from_gclient(gclient):
     raise RuntimeError("Could not find credentials in gspread client/http_client.")
 
 def download_gdrive_file_as_bytes(file_id, creds):
+    from googleapiclient.discovery import build
+    from googleapiclient.http import MediaIoBaseDownload
     drive = build("drive", "v3", credentials=creds, cache_discovery=False)
     fh = io.BytesIO()
     request = drive.files().get_media(fileId=file_id)
@@ -89,6 +88,7 @@ def download_gdrive_file_as_bytes(file_id, creds):
     return fh.getvalue()
 
 def gdrive_get_metadata(file_id, creds):
+    from googleapiclient.discovery import build
     drive = build("drive", "v3", credentials=creds, cache_discovery=False)
     return drive.files().get(fileId=file_id, fields="id,name,mimeType").execute()
 

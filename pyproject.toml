@@ -8,11 +8,11 @@ version = "0.1.0"
 requires-python = ">=3.10"
 
 dependencies = [
-  "gspread",
-  "google-auth",
-  "google-auth-oauthlib",
-  "pandas",
-  "openpyxl",
+    "pandas",
+    "numpy",
+    "gspread",
+    "google-api-python-client",
+    "google-auth",
 ]
 
 [tool.setuptools]
