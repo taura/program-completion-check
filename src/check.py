@@ -18,7 +18,7 @@
 """
 
 """ code kernel=python """
-!pip install --upgrade -q git+https://github.com/taura/program-completion-check
+#!pip install --upgrade -q git+https://github.com/taura/program-completion-check
 """ """
 
 """ md
@@ -159,6 +159,6 @@ PROGRAM_COURSES.head(5)
 
 """ code kernel=python """
 CREDIT, RESULT_XLSX = pcc.do_check(PROGRAM_STUDENTS, UTAS_GRADE, PROGRAM_COURSES)
-print(f"{CREDIT.size} 行あります. 結果を {RESULT_XLSX} に保存しました")
+print(f"{CREDIT.shape[0]} 行あります. 結果を {RESULT_XLSX} に保存しました")
 CREDIT
 """ """

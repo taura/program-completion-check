@@ -186,7 +186,8 @@ def do_check(program_students, utas_grade, program_courses):
     df["認定対象"] = np.where((df["開始年度"] <= df["年度"]) & (df["年度"] <= df["終了年度"]), 1, np.nan)
     df["認定"] = df["認定対象"].where(df["合否区分"] == "合格")
     df["認定単位"] = df["認定"] * df["単位数"]
-    credit = df.groupby(["学籍番号", "学生氏名", "学生氏名カナ"])[["認定単位"]].sum()
+    credit = df.groupby(["学籍番号", "学生氏名", "学生氏名カナ"],
+                        dropna=False)[["認定単位"]].sum()
     result_xlsx = "認定単位.xlsx"
     with pd.ExcelWriter(result_xlsx) as writer:
         credit.to_excel(writer, sheet_name="認定単位")
