@@ -10,8 +10,8 @@
 ## 準備すべきデータ
 
 1. 本部学務課から共有される, UTASから抽出した全学生の成績ファイル
-1. プログラム担当の方で用意する, プログラム登録者のリスト
-1. プログラム担当の方で用意する, プログラムに登録された科目のリスト
+1. プログラム担当の方で用意する, プログラム登録者一覧
+1. プログラム担当の方で用意する, プログラムの提供科目一覧
 
 * なお形式は, ExcelもしくはGoogleのスプレッドシート
   * Excelはcolab環境に直接アップしたものでもGoogleドライブにアップしたものでも可
@@ -19,6 +19,8 @@
 ## データを用意せずにダミー実行
 
 * データを用意しなくても, ダミーデータを使って上記をそのまま実行できる
-* 参考までにダミーデータはこちら https://drive.google.com/drive/folders/1slHCnVXp7NOhNSPQs2BRossUBBSV9ZqH?usp=drive_link
+* 参考までにダミーデータはこちら
+  * UTASデータ https://drive.google.com/drive/folders/16vqDsIk_WNCPDMuUNtoT2nkCiEbIQyYU?usp=drive_link
+  * プログラム登録者一覧および提供科目一覧 https://drive.google.com/drive/folders/1slHCnVXp7NOhNSPQs2BRossUBBSV9ZqH?usp=drive_link
 * 自分のデータを用意する際もこれをサンプルとして見ていただけると良いです
 
