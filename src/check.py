@@ -18,7 +18,7 @@
 """
 
 """ code kernel=python """
-#!pip install --upgrade -q git+https://github.com/taura/program-completion-check
+!pip install --upgrade -q git+https://github.com/taura/program-completion-check
 """ """
 
 """ md
