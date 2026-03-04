@@ -342,6 +342,145 @@ SCHOOL_NAMES = [
     "最終的に誰も覚えてない研究科",
 ]
 
+HOBBIES = [
+    "家の周りを一周する",
+    "コンビニの新商品チェック",
+    "冷蔵庫の中を定期巡回する",
+    "天気予報の答え合わせ",
+    "エスカレーターで立ち位置を考える",
+    "信号が変わるタイミング予想",
+    "電車のドア位置研究",
+    "コンビニコーヒーの濃さ比較",
+    "机の上の整理（30分だけ）",
+    "ペン回し（成功率30%）",
+    "カフェの席取り戦略研究",
+    "YouTubeおすすめの深掘り",
+    "Googleマップで遠くの街を散歩",
+    "Wi‑Fiの電波強度チェック",
+    "エレベーターの待ち時間観測",
+    "新しいボールペンの試し書き",
+    "スーパーの値引きタイミング観察",
+    "電車の発車メロディ研究",
+    "お菓子のカロリー計算（食べた後）",
+    "ノートの1ページ目をきれいに書く",
+    "メールの件名を考えすぎる",
+    "スマホのバッテリー節約術研究",
+    "カップ麺の待ち時間アレンジ",
+    "レシートの長さランキング",
+    "自販機のラインナップ分析",
+    "近所の猫の行動観察",
+    "イヤホンの絡まり解消",
+    "天井の模様を眺める",
+    "電車の吊り広告を全部読む",
+    "新しいショートカットキー探し",
+    "机のガタつき調整",
+    "雲の形の解釈",
+    "早歩きと普通歩きの境界研究",
+    "消しゴムの角を守る",
+    "おにぎりの具ランキング更新",
+    "Google検索の予測変換観察",
+    "カレンダーの祝日配置チェック",
+    "コーヒーを冷ましすぎる",
+    "ペットボトルのラベル研究",
+    "コンセントの空きを探す",
+    "歩道のタイル模様を追う",
+    "キーボードの掃除（気が向いたとき）",
+    "書店で背表紙を読む",
+    "電車の中で立ち位置最適化",
+    "雨が降りそうかどうかの体感予測",
+    "靴ひもを結び直すタイミング研究",
+    "エアコンの最適温度探し",
+    "目覚ましのスヌーズ回数管理",
+    "スマホのホーム画面整理",
+    "次にやることを考える",
+]
+
+OBJECTIVES = [
+    "今年こそ朝型人間になる（予定）",
+    "締切の前日に焦らない生活を目指す",
+    "講義に5分前に着く人になる",
+    "ノートをちゃんと取る（たぶん）",
+    "シラバスをちゃんと読む",
+    "レポートを提出期限より前に出す経験をする",
+    "寝坊の理由を天候以外にする",
+    "学食の新メニューを全部試す",
+    "研究室のドアをノックする勇気を持つ",
+    "積読の本を一冊は読む",
+    "USBメモリをなくさない一年にする",
+    "スマホを見ない時間を一日5分作る",
+    "締切という概念と仲良くなる",
+    "パスワードを覚えられるものにする",
+    "机の上を週に一度は片付ける",
+    "課題を提出してから安心して寝る",
+    "講義中に眠くならない方法を研究する",
+    "メールの返信を24時間以内にする",
+    "システムのログインパスワードを忘れない",
+    "研究室の椅子を壊さない",
+    "プリンタの紙詰まりを自分で直せるようになる",
+    "Wi-Fiが遅いときにまず自分を疑う",
+    "発表スライドを前日に完成させる",
+    "研究の進捗を月に一度は作る",
+    "昼夜逆転を月に一度は直す",
+    "「あとでやる」を減らす",
+    "図書館の静けさに慣れる",
+    "エレベーターを使わず階段を使う日を作る",
+    "講義の質問を一度はしてみる",
+    "パソコンのバックアップを取る",
+    "机の引き出しの化石を整理する",
+    "研究テーマを説明できるようになる",
+    "Gitでやらかさない",
+    "データを消してから後悔しない",
+    "ToDoリストをToDoneリストにする",
+    "朝ごはんを食べる日を増やす",
+    "課題のファイル名をわかりやすくする",
+    "机の周りのケーブルを整理する",
+    "深夜のネットサーフィンを控える（理想）",
+    "レポートの誤字を減らす",
+    "プレゼンで「えー」を減らす",
+    "コーヒーを飲みすぎない",
+    "図書館で寝ない",
+    "講義に出る回数を増やす",
+    "勉強と休憩のバランスを取る",
+    "友達の課題の進み具合を見て焦らない",
+    "パソコンのアップデートを放置しない",
+    "締切の存在を忘れない",
+    "今年の抱負を来年も思い出す",
+    "なんとか無事に一年を乗り切る",
+]
+
+MOTTOS = [
+    "板書はゆっくり、消すのはもっとゆっくり",
+    "わからない顔を見逃さない（たぶん）",
+    "例え話でだいたい乗り切る",
+    "難しい話ほど雑談から入る",
+    "学生より少しだけ早起きする",
+    "スライドは増えるが内容は削る",
+    "一回くらいは笑いを取る",
+    "沈黙が続いたら自分で答える",
+    "質問がなくても気にしないふりをする",
+    "脱線しても最後は戻る",
+    "チョークを落としても動じない",
+    "マイクのスイッチは先に確認",
+    "時間通りに終わる努力はする",
+    "毎年少しずつスライドが増える",
+    "学生の表情から進度を推測する",
+    "難しい式ほど「気持ち」を説明する",
+    "だいたい一回は黒板を間違える",
+    "教室の時計を信じすぎない",
+    "静かな教室にも慣れる",
+    "スライド番号を頼りに生きる",
+    "質問されたらうれしい",
+    "質問されなくても気にしない",
+    "チョークの粉とは共存する",
+    "例え話はその場で考える",
+    "パソコンは授業前に再起動",
+    "話がそれても授業の一部",
+    "わからないと言われてもめげない",
+    "学生の眠気とは長い付き合い",
+    "最後の5分はだいたい足りない",
+    "とりあえず今日もなんとかする"
+]
+
 def hiragana_to_katakana(s):
     return ''.join(
         chr(ord(c) + 0x60) if 'ぁ' <= c <= 'ゖ' else c
@@ -365,10 +504,12 @@ def make_random_students(n, rg):
     numbers = sorted([ "9" + make_number(7, rg) for _ in range(n) ])
     ids = [ make_number(10, rg) for _ in range(n) ]
     schools = rg.choices(SCHOOL_NAMES, k=n)
+    hobbies = rg.choices(HOBBIES, k=n)
+    objectives = rg.choices(OBJECTIVES, k=n)
     assert(len(set(names)) == n)
     assert(len(set(numbers)) == n)
     assert(len(set(ids)) == n)
-    return list(zip(ids, numbers, names, katakana_names, schools))
+    return list(zip(ids, numbers, names, katakana_names, schools, hobbies, objectives))
     
 def make_random_faculties(n, rg):
     """
@@ -413,20 +554,21 @@ def make_random_courses(n, faculties, rg):
     faculty_names = [name for utac, name in faculties]
     faculty_utacs = [utac for utac, name in faculties]
     credit_candidates = [ 2, 2, 1, 0.5 ]
-    credit = [rg.choice(credit_candidates) for _ in range(n)]
+    credit = rg.choices(credit_candidates, k=n)
     term_candidates = ["通年", "S1S2", "A1A2"] * 2 + ["S1", "S2", "A1", "A2"]
-    terms = [rg.choice(term_candidates) for _ in range(n)]
+    terms = rg.choices(term_candidates, k=n)
+    mottos = rg.choices(MOTTOS, k=n)
     return list(zip(schools, codes, courses, codes,
-                    courses, faculty_names, faculty_utacs, terms, credit))
+                    courses, faculty_names, faculty_utacs, terms, credit, mottos))
     
 def make_random_utas_grade(students, courses, rg):
     """共通ＩＤ	学籍番号	学生氏名	学生氏名カナ	学生所属	年度	時間割所属	時間割コード	開講科目名	科目コード	科目名	主担当教員名	主担当教員共通ID	開講区分名	合否区分	単位数"""
     # students: ID, 学生証番号, 名前, カナ, 所属研究科
     statuses = ["合格"] * 2 + ["不合格", "履修中", ""]
     utas = []
-    for s_id, s_no, s_name, s_kana, s_school in students:
+    for s_id, s_no, s_name, s_kana, s_school, s_hobby, s_objective in students:
         p = rg.random()
-        for c_school, code, course, code_, course_, f_name, f_id, term, cred in courses:
+        for c_school, code, course, code_, course_, f_name, f_id, term, cred, motto in courses:
             if rg.random() < p:
                 # this student took this course
                 # which year?
@@ -441,6 +583,34 @@ def make_random_utas_grade(students, courses, rg):
                "主担当教員名", "主担当教員共通ID", "開講区分名", "合否区分", "単位数"]
     df = pd.DataFrame(utas, columns=columns)
     return df
+
+def make_num_range_string(start, end, rg):
+    if start == end:
+        return f"{start}"
+    else:
+        spcs = rg.choices([" ", ""], k=2)
+        return f"{start}{spcs[0]}-{spcs[1]}{end}"
+
+def make_num_set_string(years, rg):
+    start = None
+    last = None
+    S = []
+    for y in years:
+        if last is None:
+            start = y
+            last = y
+        elif last + 1 < y:
+            S.append(make_num_range_string(start, last, rg))
+            start = y
+            last = y
+        else:
+            last = y
+    if last is not None:
+        S.append(make_num_range_string(start, last, rg))
+    sep = rg.choice([";", ",", " "])
+    spcs = rg.choices([" ", ""], k=2)
+    sep = f"{spcs[0]}{sep}{spcs[1]}"
+    return sep.join(S)
     
 def make_random_program_courses(courses, m, rg):
     """
@@ -450,15 +620,16 @@ def make_random_program_courses(courses, m, rg):
     courses = courses[:]
     rg.shuffle(courses)
     courses = courses[:m]
-    year_choices = [np.nan] + list(range(2020, 2026))
+    year_choices = list(range(2020, 2026))
     p_courses = []
-    for c_school, code, course, code_, course_, f_name, f_id, term, cred in courses:
-        start = rg.choice(year_choices)
-        end = rg.choice(year_choices)
-        if pd.notnull(start) and pd.notnull(end) and end < start:
-            end = start
-        p_courses.append((code, course, start, end))
-    columns = ["科目コード", "科目名", "開始年度", "終了年度"]
+    for c_school, code, course, code_, course_, f_name, f_id, term, cred, motto in courses:
+        p = rg.random()
+        if p < 0.2:
+            years = np.nan      # every year
+        else:
+            years = make_num_set_string([y for y in year_choices if rg.random() < 0.8], rg)
+        p_courses.append((code, course, years, motto))
+    columns = ["科目コード", "科目名", "開講年度", "モットー的なもの"]
     df = pd.DataFrame(p_courses, columns=columns)
     return df
 
@@ -470,8 +641,10 @@ def make_random_program_students(students, m, rg):
     students = students[:]
     rg.shuffle(students)
     students = students[:m]
-    p_students = [(s_no, s_name) for s_id, s_no, s_name, s_kana, s_school in students]
-    columns = ["学籍番号", "学生氏名"]
+    # s_id, s_no, s_name, s_kana, s_school, s_hobby, s_objective
+    p_students = [(s_id, s_no, s_name, s_hobby, s_objective)
+                  for s_id, s_no, s_name, s_kana, s_school, s_hobby, s_objective in students]
+    columns = ["共通ID", "学籍番号", "学生氏名", "ごしゅみ", "もくひょー"]
     df = pd.DataFrame(p_students, columns=columns)
     return df
 

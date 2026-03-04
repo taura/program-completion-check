@@ -18,7 +18,7 @@
 """
 
 """ code kernel=python """
-!pip install --upgrade -q git+https://github.com/taura/program-completion-check
+# !pip install --upgrade -q git+https://github.com/taura/program-completion-check
 """ """
 
 """ md
@@ -71,9 +71,9 @@ pd.set_option("display.max_rows", None)
 
 """ code kernel=python """
 # 本番実行時は "..." を書き換えて設定してください
-PROGRAM_STUDENTS_URL = "https://docs.google.com/spreadsheets/d/1Abeszk5-iJokwxGV6W115uUX5Bq2lziB/"
+#PROGRAM_STUDENTS_URL = "https://docs.google.com/spreadsheets/d/1Abeszk5-iJokwxGV6W115uUX5Bq2lziB/"
 # colabに直接アップした場合はこちら
-#PROGRAM_STUDENTS_URL = "登録学生一覧.xlsx"
+PROGRAM_STUDENTS_URL = "登録学生一覧.xlsx"
 PROGRAM_STUDENTS_SHEET = 0
 
 PROGRAM_STUDENTS = pcc.validate_program_students(PROGRAM_STUDENTS_URL, sheet=PROGRAM_STUDENTS_SHEET)
@@ -108,9 +108,9 @@ PROGRAM_STUDENTS.head(5)
 
 """ code kernel=python """
 # 本番実行時は "..." を書き換えて設定してください
-UTAS_GRADE_URL = "https://docs.google.com/spreadsheets/d/1Qq31omlr3QT2kjPzzxEjcIfbWLTTDZzx/"
+#UTAS_GRADE_URL = "https://docs.google.com/spreadsheets/d/1Qq31omlr3QT2kjPzzxEjcIfbWLTTDZzx/"
 # colabに直接アップした場合はこちら
-#UTAS_GRADE_URL = "utas_grade.xlsx"
+UTAS_GRADE_URL = "utas_grade.xlsx"
 UTAS_GRADE_SHEET = 0
 
 UTAS_GRADE = pcc.validate_utas_grade(UTAS_GRADE_URL, sheet=UTAS_GRADE_SHEET)
@@ -137,9 +137,9 @@ UTAS_GRADE.head(5)
 
 """ code kernel=python """
 # 本番実行時は "..." を書き換えて設定してください
-PROGRAM_COURSES_URL = "https://docs.google.com/spreadsheets/d/1NIOPkmqLLK6MgkvL3NMcGL1u2KDK8Ykv/"
+#PROGRAM_COURSES_URL = "https://docs.google.com/spreadsheets/d/1NIOPkmqLLK6MgkvL3NMcGL1u2KDK8Ykv/"
 # colabに直接アップした場合はこちら
-#PROGRAM_COURSES_URL = "科目一覧.xlsx"
+PROGRAM_COURSES_URL = "科目一覧.xlsx"
 PROGRAM_COURSES_SHEET = 0
 
 PROGRAM_COURSES = pcc.validate_program_courses(PROGRAM_COURSES_URL, sheet=PROGRAM_COURSES_SHEET)
