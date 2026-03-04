@@ -500,16 +500,19 @@ def make_random_students(n, rg):
     rg.shuffle(student_names)
     names = student_names[:n]
     katakana_names = [hiragana_to_katakana(s) for s in names]
-    # 学生証番号は9始まり
-    numbers = sorted([ "9" + make_number(7, rg) for _ in range(n) ])
-    ids = [ make_number(10, rg) for _ in range(n) ]
+    utacs = [ make_number(10, rg) for _ in range(n) ]
+    sids0 = [ "8" + make_number(7, rg) for _ in range(n) ]
+    sids1 = [ "9" + make_number(7, rg) for _ in range(n) ]
+    sids = list(zip(sids0, sids1))
     schools = rg.choices(SCHOOL_NAMES, k=n)
     hobbies = rg.choices(HOBBIES, k=n)
     objectives = rg.choices(OBJECTIVES, k=n)
     assert(len(set(names)) == n)
-    assert(len(set(numbers)) == n)
-    assert(len(set(ids)) == n)
-    return list(zip(ids, numbers, names, katakana_names, schools, hobbies, objectives))
+    assert(len(set(sids0 + sids1)) == 2 * n)
+    assert(len(set(utacs)) == n)
+    l = sorted(list(zip(utacs, sids, names, katakana_names,
+                        schools, hobbies, objectives)))
+    return l
     
 def make_random_faculties(n, rg):
     """
@@ -519,10 +522,10 @@ def make_random_faculties(n, rg):
     faculty_names = FACULTY_NAMES[:]
     rg.shuffle(faculty_names)
     names = faculty_names[:n]
-    ids = [ make_number(10, rg) for _ in range(n) ]
+    utacs = [ make_number(10, rg) for _ in range(n) ]
     assert(len(set(names)) == n)
-    assert(len(set(ids)) == n)
-    return list(zip(ids, names))
+    assert(len(set(utacs)) == n)
+    return list(zip(utacs, names))
 
 def make_random_subject_code(rg):
     """
@@ -559,14 +562,15 @@ def make_random_courses(n, faculties, rg):
     terms = rg.choices(term_candidates, k=n)
     mottos = rg.choices(MOTTOS, k=n)
     return list(zip(schools, codes, courses, codes,
-                    courses, faculty_names, faculty_utacs, terms, credit, mottos))
+                    courses, faculty_names, faculty_utacs,
+                    terms, credit, mottos))
     
 def make_random_utas_grade(students, courses, rg):
     """共通ＩＤ	学籍番号	学生氏名	学生氏名カナ	学生所属	年度	時間割所属	時間割コード	開講科目名	科目コード	科目名	主担当教員名	主担当教員共通ID	開講区分名	合否区分	単位数"""
     # students: ID, 学生証番号, 名前, カナ, 所属研究科
     statuses = ["合格"] * 2 + ["不合格", "履修中", ""]
     utas = []
-    for s_id, s_no, s_name, s_kana, s_school, s_hobby, s_objective in students:
+    for s_utac, s_ids, s_name, s_kana, s_school, s_hobby, s_objective in students:
         p = rg.random()
         for c_school, code, course, code_, course_, f_name, f_id, term, cred, motto in courses:
             if rg.random() < p:
@@ -574,7 +578,8 @@ def make_random_utas_grade(students, courses, rg):
                 # which year?
                 year = rg.randint(2020, 2025)
                 st = rg.choice(statuses)
-                utas.append((s_id, s_no, s_name, s_kana, s_school,
+                s_id = rg.choice(s_ids)
+                utas.append((s_utac, s_id, s_name, s_kana, s_school,
                              year, c_school, code, course,
                              code_, course_, f_name, f_id,
                              term, st, cred))
@@ -629,7 +634,7 @@ def make_random_program_courses(courses, m, rg):
         else:
             years = make_num_set_string([y for y in year_choices if rg.random() < 0.8], rg)
         p_courses.append((code, course, years, motto))
-    columns = ["科目コード", "科目名", "開講年度", "モットー的なもの"]
+    columns = ["科目コード", "科目名", "対象年度", "モットー的なもの"]
     df = pd.DataFrame(p_courses, columns=columns)
     return df
 
@@ -642,8 +647,10 @@ def make_random_program_students(students, m, rg):
     rg.shuffle(students)
     students = students[:m]
     # s_id, s_no, s_name, s_kana, s_school, s_hobby, s_objective
-    p_students = [(s_id, s_no, s_name, s_hobby, s_objective)
-                  for s_id, s_no, s_name, s_kana, s_school, s_hobby, s_objective in students]
+    p_students = [(s_utac, s_id, s_name, s_hobby, s_objective)
+                  for s_utac, s_ids, s_name, s_kana, s_school,
+                      s_hobby, s_objective in students
+                      for s_id in s_ids]
     columns = ["共通ID", "学籍番号", "学生氏名", "ごしゅみ", "もくひょー"]
     df = pd.DataFrame(p_students, columns=columns)
     return df

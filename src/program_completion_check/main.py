@@ -232,6 +232,12 @@ def normalize_columns(df):
         df[nc] = df[c]
     return df
 
+def cat_unique(s):
+    """
+    s : Series
+    """
+    return "\n".join([str(x) for x in pd.unique(s.dropna())])
+
 def validate_program_students(url, sheet=0):
     """
     プログラムの認定対象科目を記述した表の読み込み
@@ -240,32 +246,44 @@ def validate_program_students(url, sheet=0):
     """
     df = open_sheet(url, sheet)
     df = normalize_columns(df)
-    cols = ["共通ID", "学籍番号", "学生氏名"]
+    cols = ["共通ID"] # "学籍番号", "学生氏名"
     df = check_columns(df, cols)
     return df
 
 def validate_utas_grade(url, sheet=0):
+    """
+    UTASの成績を読み込む
+    """
     df = open_sheet(url, sheet)
     df = normalize_columns(df)
     cols = ["共通ID", "学籍番号", "学生氏名", "学生氏名カナ", "学生所属",
-            "年度", "時間割所属", "時間割コード", "開講科目名",
-            "科目コード", "科目名", "主担当教員名", "主担当教員共通ID",
-            "開講区分名", "合否区分", "単位数"]
+            "年度", "科目コード", "合否区分", "単位数"]
+    if 0:
+        cols = ["共通ID", "学籍番号", "学生氏名", "学生氏名カナ", "学生所属",
+                "年度", "時間割所属", "時間割コード", "開講科目名",
+                "科目コード", "科目名", "主担当教員名", "主担当教員共通ID",
+                "開講区分名", "合否区分", "単位数"]
     df = check_columns(df, cols)
     return df
 
 def validate_program_courses(url, sheet=0):
+    """
+    科目一覧の読み込み
+    """
     df = open_sheet(url, sheet)
     df = normalize_columns(df)
-    df = ensure_column(df, "開講年度", "")
-    cols = ["科目コード", "科目名", "開講年度"]
+    # 「開講年度」列自体がなかったら全部空 (=全部毎年) とみなす
+    df = ensure_column(df, "対象年度", "")
+    cols = ["科目コード", "対象年度"] # "科目名"
     df = check_columns(df, cols)
-    df["開講年度リスト"] = df["開講年度"].apply(parse_num_set)
-    err_rows = df["開講年度リスト"] == "ERROR"
+    # 開講年度の文字列をリスト化
+    df["対象年度リスト"] = df["対象年度"].apply(parse_num_set)
+    err_rows = df["対象年度リスト"] == "ERROR"
+    # エラーがあればエラーを表示してNone
     if any(err_rows):
         for i, row in df[err_rows].iterrows():
-            year = row["開講年度"]
-            print(f'エラー: {i+1} 行目の開講年度 "{year}" が不正', file=sys.stderr)
+            year = row["対象年度"]
+            print(f'エラー: {i+1} 行目の対象年度 "{year}" が不正', file=sys.stderr)
         return None
     return df
 
@@ -318,20 +336,23 @@ def normalize_utac(x):
         return None         # error
 
 def year_in_year_list(r):
-    years = r["開講年度リスト_科目一覧"]
+    years = r["対象年度リスト_科目一覧"]
     year = r["年度_UTAS"]
     if type(years) is type(0.0):
         assert(math.isnan(years)), years
-        return False
+        return True
     else:
         assert(type(years) is type([]))
-        return (years == []) or (year in years)
+        return (year in years)
 
-def cat_unique(s):
+def collapse_by(df, C):
     """
-    s : Series
+    df を C でグループ化し, 残りのカラムは重複を削除し, 残ったものを \n で連結
     """
-    return "; ".join([str(x) for x in pd.unique(s.dropna())])
+    cols = [c for c in df.columns]
+    agg_spec = {c : (c, cat_unique) for c in cols}
+    df = df.groupby(C, dropna=False).agg(**agg_spec)
+    return df
     
 def do_check(program_students, utas_grade, program_courses,
              req_credits):
@@ -345,6 +366,7 @@ def do_check(program_students, utas_grade, program_courses,
     ug = utas_grade
     pc = program_courses
     ps["共通ID_正規化"] = ps["共通ID"].apply(normalize_utac)
+    ps = collapse_by(ps, ["共通ID_正規化"])
     ug["共通ID_正規化"] = ug["共通ID"].apply(normalize_utac)
     ug["科目コード_正規化"] = ug["科目コード"].apply(normalize_code)
     pc["科目コード_正規化"] = pc["科目コード"].apply(normalize_code)
@@ -362,11 +384,14 @@ def do_check(program_students, utas_grade, program_courses,
     df["認定対象"] = np.where(df.apply(year_in_year_list, axis=1), 1, np.nan)
     df["認定"] = df["認定対象"].where(df["合否区分_UTAS"] == "合格")
     df["認定単位"] = df["認定"] * df["単位数_UTAS"]
-    ps_columns = ps.columns
-    ug_columns = ["学籍番号_UTAS", "学生氏名_UTAS", "学生氏名カナ_UTAS", "学生所属_UTAS"]
+    # join key
+    J = ["共通ID_正規化_登録学生一覧"]
+    ps_columns = [c for c in ps.columns if c not in J]
+    ug_columns = ["学籍番号_UTAS", "学生氏名_UTAS",
+                  "学生氏名カナ_UTAS", "学生所属_UTAS"]
     agg_spec = { c : (c, cat_unique) for c in list(ps_columns) + ug_columns }
     agg_spec.update({"認定単位" : ("認定単位", "sum")})
-    credit = df.groupby(["共通ID_正規化_登録学生一覧"], dropna=False).agg(**agg_spec)
+    credit = df.groupby(J, dropna=False).agg(**agg_spec)
     credit["認定結果"] = np.where(credit["認定単位"] >= req_credits, 1, np.nan)
     result_xlsx = "認定単位.xlsx"
     with pd.ExcelWriter(result_xlsx) as writer:
