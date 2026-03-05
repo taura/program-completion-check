@@ -1,4 +1,11 @@
 #!/usr/bin/env python
+"""
+main.py --- main file for program-completion-check
+
+プログラムに登録された学生 (STUDENTS_URL) と UTAS の成績 (UTAS_GRADE_URL) を 学籍番号で JOIN してプログラムに登録された学生の全ての成績を一覧にする
+その中で 科目表に登録された科目だけに限定して集計する
+"""
+
 import math
 import io
 import re
@@ -9,11 +16,12 @@ import numpy as np
 
 GC = None
 
-def get_gclient():
+def make_gclient():
     """
     Google spreadsheetのデータを開く
     colab でもローカルでも実行できるように
     """
+    # pylint: disable=import-outside-toplevel
     import gspread
     in_colab = 0
     try:
@@ -22,28 +30,35 @@ def get_gclient():
         in_colab = 1
     except ImportError:
         pass
-    if in_colab:
+    if in_colab:                # pylint: disable=no-else-return
         auth.authenticate_user()
         from google.auth import default
         creds, _ = default()
         return gspread.authorize(creds)
     else:
         from google_auth_oauthlib.flow import InstalledAppFlow
-        SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly",
+        scopes = ["https://www.googleapis.com/auth/spreadsheets.readonly",
                   "https://www.googleapis.com/auth/drive.readonly"]
         flow = InstalledAppFlow.from_client_secrets_file(
-            "credentials.json", SCOPES
+            "credentials.json", scopes
         )
         creds = flow.run_local_server(port=0)
         return gspread.authorize(creds)
 
-def set_gclient():
+def ensure_gclient():
+    """
+    GC に google client がセットされている状態を作る
+    """
+    # pylint: disable=global-statement
     global GC
-    GC = get_gclient()
+    if GC is None:
+        GC = make_gclient()
     return GC
 
 def extract_gdrive_file_id(url):
     """
+    gdrive の URL から file id 部分取り出し
+    
     https://docs.google.com/spreadsheets/d/1HUi7QBmFGvM9QReHjTwFRLCH1-UYqYVG/...
     --> 1HUi7QBmFGvM9QReHjTwFRLCH1-UYqYVG
     """
@@ -60,6 +75,7 @@ def extract_gdrive_file_id(url):
 
 def get_creds_from_gclient(gclient):
     """
+    gclient から credential を取り出す怪しい方法
     gclient.http_client.auth
     """
     http = getattr(gclient, "http_client", None)
@@ -78,6 +94,10 @@ def get_creds_from_gclient(gclient):
     raise RuntimeError("Could not find credentials in gspread client/http_client.")
 
 def download_gdrive_file_as_bytes(file_id, creds):
+    """
+    gdrive の file (Excel とか) の中身を取り出す
+    """
+    # pylint: disable=import-outside-toplevel
     from googleapiclient.discovery import build
     from googleapiclient.http import MediaIoBaseDownload
     drive = build("drive", "v3", credentials=creds, cache_discovery=False)
@@ -90,34 +110,48 @@ def download_gdrive_file_as_bytes(file_id, creds):
     return fh.getvalue()
 
 def gdrive_get_metadata(file_id, creds):
+    """
+    gdrive の file の meta data (ファイルのタイプ) を取り出す
+    """
+    # pylint: disable=import-outside-toplevel
     from googleapiclient.discovery import build
     drive = build("drive", "v3", credentials=creds, cache_discovery=False)
     return drive.files().get(fileId=file_id, fields="id,name,mimeType").execute()
 
 def is_gdrive_url(url):
+    """
+    URL か普通のファイル名か
+    """
     return url.startswith("https://")
-    
+
 def is_gspreadsheet(file_id, creds):
+    """
+    Google spreadsheet か否 (Excel) か
+    """
     meta = gdrive_get_metadata(file_id, creds)
     mime = meta["mimeType"]
     return mime == "application/vnd.google-apps.spreadsheet"
 
 def open_sheet(url, sheet):
     """
+    ローカルファイル (Excel)
+    Google Drive の spreadsheet
+    Google Drive 上のExcel
+    どれでも読める関数
+    
     Google Sheets / Excel (even if opened via docs.google.com/spreadsheets/) を
     Drive の mimeType で判定して DataFrame として読む。
 
     sheet: int (0-based) or str (sheet name)
     """
     if not is_gdrive_url(url):
+        # ローカルファイル
         return pd.read_excel(url, sheet_name=sheet)
-    if GC is None:
-        gclient = set_gclient()
-    else:
-        gclient = GC
+    # URL -> Excel or spreadsheet
+    gclient = ensure_gclient()
     file_id = extract_gdrive_file_id(url)
     creds = get_creds_from_gclient(gclient)
-    if is_gspreadsheet(file_id, creds):
+    if is_gspreadsheet(file_id, creds): # pylint: disable=no-else-return
         # Google Sheets
         doc = gclient.open_by_key(file_id)
         ws = doc.get_worksheet(sheet) if isinstance(sheet, int) else doc.worksheet(sheet)
@@ -127,22 +161,17 @@ def open_sheet(url, sheet):
         data = download_gdrive_file_as_bytes(file_id, creds)
         return pd.read_excel(io.BytesIO(data), sheet_name=sheet)
 
-"""
-
-プログラムに登録された学生 (STUDENTS_URL) と UTAS の成績 (UTAS_GRADE_URL) を 学籍番号で JOIN してプログラムに登録された学生の全ての成績を一覧にする
-
-その中で 科目表に登録された科目だけに限定して集計する
-
-"""
-
 def check_columns(df, columns):
     """
     df に columns があることを確認
-    それらのcolumn だけを取り出す(余分なcolumnを消す)
     """
     for c in columns:
         if c not in df.columns:
-            print(f"\n\nエラー: プログラム登録学生に「{c}」列がありません ({df.columns})\n\n", file=sys.stderr)
+            print(f"""
+
+エラー: 必須カラム "{c}" がありません ({df.columns})
+
+""", file=sys.stderr)
             assert(c in df.columns), (c, df.columns)
     return df
 
@@ -154,25 +183,42 @@ def set_default(series, val, typ):
 
 def ensure_column(df, c, val):
     """
-    df[c] が存在していなければ加える
+    カラム c (df[c]) が存在していなければ加える. 値は val
     """
     if c not in df.columns:
         df[c] = val
     return df
 
 def safe_int(s):
+    """
+    文字列 -> int; 失敗したら None
+    """
     try:
         return int(s)
     except ValueError:
         return None
 
+def is_real_nan(x):
+    """
+    本当に NaN か?
+    (pd.isnull(x) は x がsequenceの時、各値が nan かどうかを並べたsequenceを
+    返してしまう. ここではそれはきっぱり False になる)
+    """
+    try:
+        return math.isnan(x)
+    except TypeError:
+        return False
+
 def parse_num_range(s):
+    """
+    "2023-2025" -> [2023,2024,2025] みたいなこと
+    """
     lo = 2015
     hi = 2035
     ab = s.split("-")
     if len(ab) == 1:
         ab = ab + ab            # [x] -> [x,x]
-    if len(ab) == 2:
+    if len(ab) == 2:            # pylint: disable=no-else-return
         [a, b] = ab
         if a == "" and b == "":
             return None
@@ -180,8 +226,7 @@ def parse_num_range(s):
         b = safe_int(b) if b else hi
         if a is None or b is None:
             return None
-        else:
-            return set(range(a, b + 1))
+        return set(range(a, b + 1))
     else:
         return None
 
@@ -196,9 +241,9 @@ def parse_num_set(s):
     , が ; または 空白もOK とする
     - の前後の空白もOK
     """
-    if pd.isnull(s):
+    if is_real_nan(s):
         return s
-    s = unicodedata.normalize("NFKC", s)
+    s = unicodedata.normalize("NFKC", str(s))
     s = s.strip()
     if s == "":
         return np.nan
@@ -207,13 +252,13 @@ def parse_num_set(s):
     # collapse spaces around '-' inside a range-like token
     #    e.g. "3 - 5" -> "3-5", "- 7" -> "-7", "7 -" -> "7-"
     s = re.sub(r"(?P<a>\d*)\s*-\s*(?P<b>\d*)", r"\g<a>-\g<b>", s)
-    S = set()
+    num_set = set()
     for rng in s.split():
-        dS = parse_num_range(rng)
-        if dS is None:
+        ds = parse_num_range(rng)
+        if ds is None:
             return "ERROR"      # propagate error
-        S.update(dS)
-    return sorted(S)
+        num_set.update(ds)
+    return sorted(num_set)
 
 def normalize_columns(df):
     """
@@ -232,22 +277,67 @@ def normalize_columns(df):
         df[nc] = df[c]
     return df
 
-def cat_unique(s):
+def normalize_code(x, width=15):
     """
-    s : Series
+    学籍番号などのキー正規化
+
+    - 全角 → 半角（NFKC）
+    - 純数字なら0埋めして width 桁
+    - width 超は警告
+    - NaN はそのまま返す
     """
-    return "\n".join([str(x) for x in pd.unique(s.dropna())])
+    if is_real_nan(x):
+        return x
+    # 文字列化 + 前後空白除去
+    s = str(x).strip()
+    # Unicode正規化（全角→半角）
+    s = unicodedata.normalize("NFKC", s)
+    # 純数字なら0埋め
+    if s.isdigit():             # pylint: disable=no-else-return
+        if len(s) >= width:     # pylint: disable=no-else-return
+            print(f"警告: コードが {width} 文字以上あります: {s}", file=sys.stderr)
+            return s
+        else:
+            return s.zfill(width)
+    else:
+        return s
+
+def normalize_utac(x):
+    """
+    NaN -> NaN
+    全角 -> 半角
+    前後空白除去
+    10桁以下 -> 10桁
+    10桁以下@utac.u-tokyo.ac.jp -> 10桁
+    それ以外 -> error
+    """
+    if is_real_nan(x):
+        return x
+    # 文字列化 + 前後空白除去
+    s = str(x)
+    # Unicode正規化（全角→半角）
+    s = unicodedata.normalize("NFKC", s)
+    s = s.strip()
+    # 純数字なら0埋め
+    m = re.match(r"(?P<n>\d{1,10})(@utac\.u\-tokyo\.ac\.jp)?$", s)
+    if m:                       # pylint: disable=no-else-return
+        n = m.group("n")
+        n = "0" * (10 - len(n)) + n
+        return n
+    else:
+        return None             # error
 
 def validate_program_students(url, sheet=0):
     """
     プログラムの認定対象科目を記述した表の読み込み
-    プログラムごとに作る
-    以下の cols のカラムが必須
+    共通ID カラムが必須
     """
     df = open_sheet(url, sheet)
     df = normalize_columns(df)
     cols = ["共通ID"] # "学籍番号", "学生氏名"
-    df = check_columns(df, cols)
+    check_columns(df, cols)
+    df["共通ID_正規化"] = df["共通ID"].apply(normalize_utac)
+    df = df.add_suffix("_登録学生一覧")
     return df
 
 def validate_utas_grade(url, sheet=0):
@@ -258,13 +348,31 @@ def validate_utas_grade(url, sheet=0):
     df = normalize_columns(df)
     cols = ["共通ID", "学籍番号", "学生氏名", "学生氏名カナ", "学生所属",
             "年度", "科目コード", "合否区分", "単位数"]
-    if 0:
+    if 0:                       # pylint: disable=using-constant-test
         cols = ["共通ID", "学籍番号", "学生氏名", "学生氏名カナ", "学生所属",
                 "年度", "時間割所属", "時間割コード", "開講科目名",
                 "科目コード", "科目名", "主担当教員名", "主担当教員共通ID",
                 "開講区分名", "合否区分", "単位数"]
     df = check_columns(df, cols)
+    df["共通ID_正規化"] = df["共通ID"].apply(normalize_utac)
+    df["科目コード_正規化"] = df["科目コード"].apply(normalize_code)
+    df = df.add_suffix("_UTAS")
     return df
+
+def make_year_list(df):
+    """
+    df["対象年度"]の表記から, 対象年度リスト (整数のリスト) にする
+    """
+    # 開講年度の文字列をリスト化
+    years = df["対象年度"].apply(parse_num_set)
+    err_rows = years == "ERROR"
+    # エラーがあればエラーを表示してNone
+    if any(err_rows):
+        for i, row in df[err_rows].iterrows():
+            year = row["対象年度"]
+            print(f'エラー: {i+1} 行目の対象年度 "{year}" が不正', file=sys.stderr)
+        return None
+    return years
 
 def validate_program_courses(url, sheet=0):
     """
@@ -276,84 +384,65 @@ def validate_program_courses(url, sheet=0):
     df = ensure_column(df, "対象年度", "")
     cols = ["科目コード", "対象年度"] # "科目名"
     df = check_columns(df, cols)
-    # 開講年度の文字列をリスト化
-    df["対象年度リスト"] = df["対象年度"].apply(parse_num_set)
-    err_rows = df["対象年度リスト"] == "ERROR"
-    # エラーがあればエラーを表示してNone
-    if any(err_rows):
-        for i, row in df[err_rows].iterrows():
-            year = row["対象年度"]
-            print(f'エラー: {i+1} 行目の対象年度 "{year}" が不正', file=sys.stderr)
+    df["科目コード_正規化"] = df["科目コード"].apply(normalize_code)
+    years = make_year_list(df)
+    if years is None:
         return None
+    df["対象年度リスト"] = years
+    df = df.add_suffix("_科目一覧")
     return df
 
-def normalize_code(x, width=15):
+def year_in_year_list(row):
     """
-    学籍番号などのキー正規化
-
-    - 全角 → 半角（NFKC）
-    - 純数字なら0埋めして width 桁
-    - width 超は警告
-    - NaN はそのまま返す
+    row : 行
+    年度_UTAS が 対象年度リスト_科目一覧 に入っているかどうか?
     """
-    if pd.isnull(x):
-        return x
-    # 文字列化 + 前後空白除去
-    s = str(x).strip()
-    # Unicode正規化（全角→半角）
-    s = unicodedata.normalize("NFKC", s)
-    # 純数字なら0埋め
-    if s.isdigit():
-        if len(s) >= width:
-            print(f"コードが {width} 文字以上あります: {s}", file=sys.stderr)
-            return s
-        return s.zfill(width)
-    return s
-
-def normalize_utac(x):
-    """
-    NaN -> NaN
-    全角 -> 半角
-    前後空白除去
-    10桁以下 -> 10桁
-    10桁以下@utac.u-tokyo.ac.jp -> 10桁
-    それ以外 -> error
-    """
-    if pd.isnull(x):
-        return x
-    # 文字列化 + 前後空白除去
-    s = str(x)
-    # Unicode正規化（全角→半角）
-    s = unicodedata.normalize("NFKC", s)
-    s = s.strip()
-    # 純数字なら0埋め
-    m = re.match(r"(?P<n>\d{1,10})(@utac\.u\-tokyo\.ac\.jp)?$", s)
-    if m:
-        n = m.group("n")
-        n = "0" * (10 - len(n)) + n
-        return n
-    else:
-        return None         # error
-
-def year_in_year_list(r):
-    years = r["対象年度リスト_科目一覧"]
-    year = r["年度_UTAS"]
-    if type(years) is type(0.0):
-        assert(math.isnan(years)), years
+    years = row["対象年度リスト_科目一覧"]
+    year = row["年度_UTAS"]
+    if is_real_nan(years):
         return True
-    else:
-        assert(type(years) is type([]))
-        return (year in years)
+    assert(isinstance(years, type([]))), years
+    return year in years
 
-def collapse_by(df, C):
+def cat_unique(s):
+    """
+    s : Series.
+    NaNは無視. それ以外は異なるものだけ取り出してつなげる
+    """
+    return "\n".join([str(x) for x in pd.unique(s.dropna())])
+
+def merge_sets(s):
+    """
+    s : Series.
+    各要素はリストもしくは NaN (全集合)
+    """
+    a = set()
+    for x in s:
+        if is_real_nan(x):
+            return x
+        a.update(x)
+    return sorted(list(a))
+
+def group_and_concat_uniques(df, group_cols):
     """
     df を C でグループ化し, 残りのカラムは重複を削除し, 残ったものを \n で連結
     """
-    cols = [c for c in df.columns]
+    cols = [c for c in df.columns if c not in group_cols]
     agg_spec = {c : (c, cat_unique) for c in cols}
-    df = df.groupby(C, dropna=False).agg(**agg_spec)
+    df = df.groupby(group_cols, as_index=False, dropna=False).agg(**agg_spec)
     return df
-    
+
+def group_and_merge_years(df, group_cols, merge_cols):
+    """
+    df を C でグループ化し, 残りのカラムは重複を削除し, 残ったものを \n で連結
+    """
+    cat_cols = [c for c in df.columns if c not in (merge_cols + group_cols)]
+    cat_spec   = {c : (c, cat_unique) for c in cat_cols}
+    merge_spec = {c : (c, merge_sets) for c in merge_cols}
+    agg_spec = cat_spec | merge_spec
+    df = df.groupby(group_cols, as_index=False, dropna=False).agg(**agg_spec)
+    return df
+
 def do_check(program_students, utas_grade, program_courses,
              req_credits):
     """
@@ -362,17 +451,16 @@ def do_check(program_students, utas_grade, program_courses,
     program_courses : dataframe
     req_credits : 認定に必要なクレジット
     """
+    # pylint: disable=too-many-locals
     ps = program_students
     ug = utas_grade
     pc = program_courses
-    ps["共通ID_正規化"] = ps["共通ID"].apply(normalize_utac)
-    ps = collapse_by(ps, ["共通ID_正規化"])
-    ug["共通ID_正規化"] = ug["共通ID"].apply(normalize_utac)
-    ug["科目コード_正規化"] = ug["科目コード"].apply(normalize_code)
-    pc["科目コード_正規化"] = pc["科目コード"].apply(normalize_code)
-    ps = ps.add_suffix("_登録学生一覧")
-    ug = ug.add_suffix("_UTAS")
-    pc = pc.add_suffix("_科目一覧")
+    # 同一人物(共通ID)が異なる行に存在している(修士と博士両方で登録など)ケースをマージ
+    ps = group_and_concat_uniques(ps, ["共通ID_正規化_登録学生一覧"])
+    # 同一科目コードで対象年度が複数行で書かれているケースをマージ
+    pc = group_and_merge_years(pc,
+                               ["科目コード_正規化_科目一覧"],
+                               ["対象年度リスト_科目一覧"])
     # 登録学生一覧にUTAS成績をjoin
     ps_ug = pd.merge(ps, ug, how="left",
                      left_on="共通ID_正規化_登録学生一覧",
@@ -385,37 +473,52 @@ def do_check(program_students, utas_grade, program_courses,
     df["認定"] = df["認定対象"].where(df["合否区分_UTAS"] == "合格")
     df["認定単位"] = df["認定"] * df["単位数_UTAS"]
     # join key
-    J = ["共通ID_正規化_登録学生一覧"]
-    ps_columns = [c for c in ps.columns if c not in J]
+    jkeys = ["共通ID_正規化_登録学生一覧"]
+    ps_columns = [c for c in ps.columns if c not in jkeys]
     ug_columns = ["学籍番号_UTAS", "学生氏名_UTAS",
                   "学生氏名カナ_UTAS", "学生所属_UTAS"]
-    agg_spec = { c : (c, cat_unique) for c in list(ps_columns) + ug_columns }
+    agg_spec = { c : (c, cat_unique) for c in ps_columns + ug_columns }
     agg_spec.update({"認定単位" : ("認定単位", "sum")})
-    credit = df.groupby(J, dropna=False).agg(**agg_spec)
+    credit = df.groupby(jkeys, dropna=False).agg(**agg_spec)
     credit["認定結果"] = np.where(credit["認定単位"] >= req_credits, 1, np.nan)
     result_xlsx = "認定単位.xlsx"
     with pd.ExcelWriter(result_xlsx) as writer:
         credit.to_excel(writer, sheet_name="認定単位")
         df.to_excel(writer, sheet_name="詳細", index=False)
     return (credit, result_xlsx)
-    
+
 def main():
+    """
+    main function
+    """
     program_students_url = "登録学生一覧.xlsx"
     program_students_sheet = 0
     program_students = validate_program_students(program_students_url, sheet=program_students_sheet)
-    assert(program_students is not None)
+    assert program_students is not None
     utas_grade_url = "utas_grade.xlsx"
     utas_grade_sheet = 0
     utas_grade = validate_utas_grade(utas_grade_url, sheet=utas_grade_sheet)
-    assert(utas_grade is not None)
+    assert utas_grade is not None
     program_courses_url = "科目一覧.xlsx"
     program_courses_sheet = 0
     program_courses = validate_program_courses(program_courses_url, sheet=program_courses_sheet)
-    assert(program_courses is not None)
+    assert program_courses is not None
     required_credits = 3
     do_check(program_students, utas_grade, program_courses, required_credits)
 
-if 0 or __name__ == "__main__":
-    main()
-    
+def test():
+    """
+    test corner cases
+    """
+    url = "test.xlsx"
+    ps = validate_program_students(url, sheet=0)
+    assert ps is not None
+    ug = validate_utas_grade(url, sheet=1)
+    assert ug is not None
+    pc = validate_program_courses(url, sheet=2)
+    assert pc is not None
+    do_check(ps, ug, pc, 3)
 
+if 0 or __name__ == "__main__": # pylint: disable=simplifiable-condition
+    # main()
+    test()
