@@ -346,14 +346,16 @@ def validate_utas_grade(url, sheet=0):
     """
     df = open_sheet(url, sheet)
     df = normalize_columns(df)
-    cols = ["共通ID", "学籍番号", "学生氏名", "学生氏名カナ", "学生所属",
-            "年度", "科目コード", "合否区分", "単位数"]
+    cols = ["共通ID", "年度", "科目コード", "合否区分", "単位数"]
+    opt_cols = ["学籍番号", "学生氏名", "学生氏名カナ", "学生所属"]
+    for c in opt_cols:
+        ensure_column(df, c, "")
     if 0:                       # pylint: disable=using-constant-test
         cols = ["共通ID", "学籍番号", "学生氏名", "学生氏名カナ", "学生所属",
                 "年度", "時間割所属", "時間割コード", "開講科目名",
                 "科目コード", "科目名", "主担当教員名", "主担当教員共通ID",
                 "開講区分名", "合否区分", "単位数"]
-    df = check_columns(df, cols)
+    df = check_columns(df, cols + opt_cols)
     df["共通ID_正規化"] = df["共通ID"].apply(normalize_utac)
     df["科目コード_正規化"] = df["科目コード"].apply(normalize_code)
     df = df.add_suffix("_UTAS")
@@ -380,10 +382,12 @@ def validate_program_courses(url, sheet=0):
     """
     df = open_sheet(url, sheet)
     df = normalize_columns(df)
-    # 「開講年度」列自体がなかったら全部空 (=全部毎年) とみなす
-    df = ensure_column(df, "対象年度", "")
+    # 「対象年度」列自体がなかったら全部空 (=全部毎年) とみなす
     cols = ["科目コード", "対象年度"] # "科目名"
-    df = check_columns(df, cols)
+    opt_cols = ["対象年度", "組み合わせ科目群", "排他科目群"]
+    for c in opt_cols:
+        ensure_column(df, c, "")
+    df = check_columns(df, cols + opt_cols)
     df["科目コード_正規化"] = df["科目コード"].apply(normalize_code)
     years = make_year_list(df)
     if years is None:
@@ -470,13 +474,38 @@ def do_check(program_students, utas_grade, program_courses,
                   left_on="科目コード_正規化_UTAS",
                   right_on="科目コード_正規化_科目一覧")
     df["認定対象"] = np.where(df.apply(year_in_year_list, axis=1), 1, np.nan)
-    df["認定"] = df["認定対象"].where(df["合否区分_UTAS"] == "合格")
+    df["認定対象かつ合格"] = df["認定対象"].where(df["合否区分_UTAS"] == "合格")
+    # 複数の科目を組み合わせると初めて認定されるケースの処理
+    # 組み合わせ科目群_科目一覧 に同じ値が入っている科目群すべてが
+    # 認定対象かつ合格=1 だったらそれらすべてが認定される
+    # ただし 組み合わせ科目群_科目一覧 が空 ("") だったものはそれぞれ単独で
+    # 科目群とみなされる
+    #
+    # 組み合わせ科目群_科目一覧 が空でないものとそうでないものに分ける
+    df["組み合わせ科目群_KEY"] = np.where((df["組み合わせ科目群_科目一覧"] == "") | (df["組み合わせ科目群_科目一覧"].isnull()),
+                                          "i" + df.index.astype("string"),
+                                          "k" + df["組み合わせ科目群_科目一覧"].fillna("").astype("string"))
+    # 学生, 組み合わせ_given, 組み合わせでグループ化
+    # 認定対象かつ合格にひとつでも na があるかを見る
+    combined = (df.groupby(["共通ID_正規化_登録学生一覧",
+                            "組み合わせ科目群_KEY"])["認定対象かつ合格"]
+                .transform(lambda x: x.isna().any()))
+    df["組み合わせ認定"] = df["認定対象かつ合格"].mask(combined)
+    # 排他的科目 (それらからいくつとっても一つと数えられる)ものの処理
+    # 排他科目群_科目一覧 が同じ値の科目群はその中から一つしか認定されない
+    df["排他科目群_KEY"] = np.where((df["排他科目群_科目一覧"] == "") | (df["排他科目群_科目一覧"].isnull()),
+                                    "i" + df.index.astype("string"),
+                                    "k" + df["排他科目群_科目一覧"].fillna("").astype("string"))
+    mutexed = (df.groupby(["共通ID_正規化_登録学生一覧",
+                           "排他科目群_KEY"])["組み合わせ認定"]
+               .idxmax().dropna())
+    df["認定"] = np.nan
+    df.loc[mutexed, "認定"] = 1
     df["認定単位"] = df["認定"] * df["単位数_UTAS"]
     # join key
     jkeys = ["共通ID_正規化_登録学生一覧"]
     ps_columns = [c for c in ps.columns if c not in jkeys]
-    ug_columns = ["学籍番号_UTAS", "学生氏名_UTAS",
-                  "学生氏名カナ_UTAS", "学生所属_UTAS"]
+    ug_columns = ["学籍番号_UTAS", "学生氏名_UTAS", "学生氏名カナ_UTAS", "学生所属_UTAS"]
     agg_spec = { c : (c, cat_unique) for c in ps_columns + ug_columns }
     agg_spec.update({"認定単位" : ("認定単位", "sum")})
     credit = df.groupby(jkeys, dropna=False).agg(**agg_spec)
@@ -484,7 +513,8 @@ def do_check(program_students, utas_grade, program_courses,
     result_xlsx = "認定単位.xlsx"
     with pd.ExcelWriter(result_xlsx) as writer:
         credit.to_excel(writer, sheet_name="認定単位")
-        df.to_excel(writer, sheet_name="詳細", index=False)
+        df[["共通ID_正規化_登録学生一覧","学生氏名_UTAS","年度_UTAS","科目コード_UTAS","科目名_UTAS","合否区分_UTAS","単位数_UTAS","対象年度_科目一覧","認定対象","認定対象かつ合格","組み合わせ科目群_KEY","組み合わせ認定","排他科目群_KEY","認定","認定単位"]].to_excel(writer, sheet_name="詳細", index=False)
+        df.to_excel(writer, sheet_name="全て", index=False)
     return (credit, result_xlsx)
 
 def main():
@@ -520,5 +550,5 @@ def test():
     do_check(ps, ug, pc, 3)
 
 if 0 or __name__ == "__main__": # pylint: disable=simplifiable-condition
-    # main()
-    test()
+    main()
+    # test()
