@@ -657,7 +657,7 @@ def make_random_program_students(students, m, rg):
 
 def main():
     rg = random.Random()
-    rg.seed(12345)
+    rg.seed(123456)
     n_courses = len(COURSE_NAMES)
     n_students = len(STUDENT_NAMES)
     n_faculties = len(FACULTY_NAMES)
