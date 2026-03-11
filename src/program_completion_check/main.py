@@ -473,7 +473,8 @@ def do_check(program_students, utas_grade, program_courses,
     df = pd.merge(ps_ug, pc, how="left",
                   left_on="科目コード_正規化_UTAS",
                   right_on="科目コード_正規化_科目一覧")
-    df["認定対象"] = np.where(df.apply(year_in_year_list, axis=1), 1, np.nan)
+    df["認定対象"] = np.where((pd.notnull(df["科目コード_正規化_科目一覧"])
+                               & df.apply(registered_course_and_year_in_year_list, axis=1)), 1, np.nan)
     df["認定対象かつ合格"] = df["認定対象"].where(df["合否区分_UTAS"] == "合格")
     # 複数の科目を組み合わせると初めて認定されるケースの処理
     # 組み合わせ科目群_科目一覧 に同じ値が入っている科目群すべてが
@@ -521,15 +522,16 @@ def main():
     """
     main function
     """
-    program_students_url = "登録学生一覧.xlsx"
+    program_students_url = "登録学生一覧CFS2603.xlsx"
     program_students_sheet = 0
     program_students = validate_program_students(program_students_url, sheet=program_students_sheet)
     assert program_students is not None
-    utas_grade_url = "utas_grade.xlsx"
+    #utas_grade_url = "utas_grade.xlsx"
+    utas_grade_url = "11_WINGS-CFS.xlsx"
     utas_grade_sheet = 0
     utas_grade = validate_utas_grade(utas_grade_url, sheet=utas_grade_sheet)
     assert utas_grade is not None
-    program_courses_url = "科目一覧.xlsx"
+    program_courses_url = "科目一覧CFS2603.xlsx"
     program_courses_sheet = 0
     program_courses = validate_program_courses(program_courses_url, sheet=program_courses_sheet)
     assert program_courses is not None
