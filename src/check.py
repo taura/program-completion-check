@@ -18,19 +18,15 @@
 """
 
 """ code kernel=python """
-!pip install --upgrade -q git+https://github.com/taura/program-completion-check
-""" """
+# !pip install --upgrade -q git+https://github.com/taura/program-completion-check
 
-""" md
-* 以下を初めて実行すると, 小さな窓が出てきます
-* 窓が出てきたらスクロールして最後の部分を表示して「許可」のボタンをおして先へ進んでください
-* その後, wings-credit-count というアプリケーションへ Google Drive へのアクセスを許してよいかを聞いてくるので全て許可を選んで許可してください
-"""
-
-""" code kernel=python """
 import pandas as pd
-import program_completion_check as pcc
 pd.set_option("display.max_rows", None)
+
+import program_completion_check as pcc
+import importlib
+importlib.reload(pcc)
+pcc.__version__
 """ """
 
 """ md
@@ -41,7 +37,7 @@ pd.set_option("display.max_rows", None)
 
 * **以下の `PROGRAM_STUDENTS_URL = "..."` を自分が使いたいものに変更してください**
 * 以下はこちらで用意した誰でも読めるものになっているので試しにそのまま実行してみてもOK
-* 初めて実行する時に窓が出てきて "Allow this notebook to access your Google credentials?" と聞かれるので許可 "Allow" して下さい
+* 以下を初めてもしくは久しぶりに実行する時に窓が出てきて "Allow this notebook to access your Google credentials?" と聞かれるので許可 "Allow" して下さい
 * 別の小窓が出てきて「Third-party authored notebook code に再ログインしようとしています」「Third-party authored notebook code が Google アカウントへのアクセスを求めています」みたいなことを聞かれるので「次へ」や「続行」を押して先へ進んで下さい (ボタンを押すためにスクロールする必要があるかも知れません)
 
 * **<font color=red>注意 (重要)</font>**
@@ -74,8 +70,8 @@ PROGRAM_STUDENTS_URL = "https://docs.google.com/spreadsheets/d/1Abeszk5-iJokwxGV
 PROGRAM_STUDENTS_SHEET = 0
 
 PROGRAM_STUDENTS = pcc.validate_program_students(PROGRAM_STUDENTS_URL, sheet=PROGRAM_STUDENTS_SHEET)
-print(f"{PROGRAM_STUDENTS.shape[0]} 行あります (先頭5行は以下です)")
-PROGRAM_STUDENTS.head(5)
+print(f"学生一覧は {PROGRAM_STUDENTS.shape[0]} 行あります")
+PROGRAM_STUDENTS
 """ """
 
 """ md
@@ -111,8 +107,8 @@ UTAS_GRADE_URL = "https://docs.google.com/spreadsheets/d/1Qq31omlr3QT2kjPzzxEjcI
 UTAS_GRADE_SHEET = 0
 
 UTAS_GRADE = pcc.validate_utas_grade(UTAS_GRADE_URL, sheet=UTAS_GRADE_SHEET)
-print(f"{UTAS_GRADE.shape[0]} 行あります (先頭5行は以下です)")
-UTAS_GRADE.head(5)
+print(f"UTASデータは {UTAS_GRADE.shape[0]} 行あります")
+UTAS_GRADE
 """ """
 
 """ md
@@ -146,8 +142,8 @@ PROGRAM_COURSES_URL = "https://docs.google.com/spreadsheets/d/1NIOPkmqLLK6MgkvL3
 PROGRAM_COURSES_SHEET = 0
 
 PROGRAM_COURSES = pcc.validate_program_courses(PROGRAM_COURSES_URL, sheet=PROGRAM_COURSES_SHEET)
-print(f"{PROGRAM_COURSES.shape[0]} 行あります (先頭5行は以下です)")
-PROGRAM_COURSES.head(5)
+print(f"科目一覧は {PROGRAM_COURSES.shape[0]} 行あります")
+PROGRAM_COURSES
 """ """
 
 """ md
@@ -159,8 +155,11 @@ PROGRAM_COURSES.head(5)
 """
 
 """ code kernel=python """
+# これ以上単位を取ったら合格というライン
 REQUIRED_CREDITS = 3
+
 CREDIT, RESULT_XLSX = pcc.do_check(PROGRAM_STUDENTS, UTAS_GRADE, PROGRAM_COURSES, REQUIRED_CREDITS)
 print(f"{CREDIT.shape[0]} 行あります. 結果を {RESULT_XLSX} に保存しました")
 CREDIT
 """ """
+
