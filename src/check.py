@@ -79,8 +79,8 @@ PROGRAM_STUDENTS_URL = "https://docs.google.com/spreadsheets/d/1Abeszk5-iJokwxGV
 PROGRAM_STUDENTS_SHEET = 0
 
 PROGRAM_STUDENTS = pcc.validate_program_students(PROGRAM_STUDENTS_URL, sheet=PROGRAM_STUDENTS_SHEET)
-print(f"学生一覧は {PROGRAM_STUDENTS.shape[0]} 行あります")
-PROGRAM_STUDENTS
+print(f"学生一覧は {PROGRAM_STUDENTS.shape[0]} 行あります. 最初の20行は以下です")
+PROGRAM_STUDENTS.head(20)
 """ """
 
 """ md
@@ -116,8 +116,8 @@ UTAS_GRADE_URL = "https://docs.google.com/spreadsheets/d/1Qq31omlr3QT2kjPzzxEjcI
 UTAS_GRADE_SHEET = 0
 
 UTAS_GRADE = pcc.validate_utas_grade(UTAS_GRADE_URL, sheet=UTAS_GRADE_SHEET)
-print(f"UTASデータは {UTAS_GRADE.shape[0]} 行あります")
-UTAS_GRADE
+print(f"UTASデータは {UTAS_GRADE.shape[0]} 行あります. 最初の20行は以下です")
+UTAS_GRADE.head(20)
 """ """
 
 """ md
@@ -151,8 +151,8 @@ PROGRAM_COURSES_URL = "https://docs.google.com/spreadsheets/d/1NIOPkmqLLK6MgkvL3
 PROGRAM_COURSES_SHEET = 0
 
 PROGRAM_COURSES = pcc.validate_program_courses(PROGRAM_COURSES_URL, sheet=PROGRAM_COURSES_SHEET)
-print(f"科目一覧は {PROGRAM_COURSES.shape[0]} 行あります")
-PROGRAM_COURSES
+print(f"科目一覧は {PROGRAM_COURSES.shape[0]} 行あります. 最初の20行は以下です")
+PROGRAM_COURSES.head(20)
 """ """
 
 """ md
