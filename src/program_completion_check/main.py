@@ -473,21 +473,25 @@ def do_check(program_students, utas_grade, program_courses,
     df = pd.merge(ps_ug, pc, how="left",
                   left_on="科目コード_正規化_UTAS",
                   right_on="科目コード_正規化_科目一覧")
+    # ある科目コードをある年度に履修したものが当該プログラムの認定対象かどうか
     df["認定対象"] = np.where((pd.notnull(df["科目コード_正規化_科目一覧"])
                                & df.apply(year_in_year_list, axis=1)), 1, np.nan)
+    # ... かつ, 合格しているか
     df["認定対象かつ合格"] = df["認定対象"].where(df["合否区分_UTAS"] == "合格")
     # 複数の科目を組み合わせると初めて認定されるケースの処理
     # 組み合わせ科目群_科目一覧 に同じ値が入っている科目群すべてが
     # 認定対象かつ合格=1 だったらそれらすべてが認定される
     # ただし 組み合わせ科目群_科目一覧 が空 ("") だったものはそれぞれ単独で
     # 科目群とみなされる
-    #
     # 組み合わせ科目群_科目一覧 が空でないものとそうでないものに分ける
+    # 空でない -> k + 書かれていた記号
+    # 空      -> i + index (行ごとに異なる値)
     df["組み合わせ科目群_KEY"] = np.where((df["組み合わせ科目群_科目一覧"] == "") | (df["組み合わせ科目群_科目一覧"].isnull()),
                                           "i" + df.index.astype("string"),
                                           "k" + df["組み合わせ科目群_科目一覧"].fillna("").astype("string"))
-    # 学生, 組み合わせ_given, 組み合わせでグループ化
+    # (学生, 組み合わせ_科目群のKEY) でグループ化
     # 認定対象かつ合格にひとつでも na があるかを見る
+    # ひとつでも na があったら全部が不合格
     combined = (df.groupby(["共通ID_正規化_登録学生一覧",
                             "組み合わせ科目群_KEY"])["認定対象かつ合格"]
                 .transform(lambda x: x.isna().any()))
@@ -497,9 +501,12 @@ def do_check(program_students, utas_grade, program_courses,
     df["排他科目群_KEY"] = np.where((df["排他科目群_科目一覧"] == "") | (df["排他科目群_科目一覧"].isnull()),
                                     "i" + df.index.astype("string"),
                                     "k" + df["排他科目群_科目一覧"].fillna("").astype("string"))
-    mutexed = (df.groupby(["共通ID_正規化_登録学生一覧",
-                           "排他科目群_KEY"])["組み合わせ認定"]
-               .idxmax().dropna())
+    # 認定されているものだけを取り出し, 
+    # (学生, "排他科目群_KEY") でグループ化
+    # 複数合格があった場合に一つだけを取る
+    mutexed = (df[df["組み合わせ認定"].notna()]
+               .groupby(["共通ID_正規化_登録学生一覧", "排他科目群_KEY"])["組み合わせ認定"]
+               .idxmax())
     df["認定"] = np.nan
     df.loc[mutexed, "認定"] = 1
     df["認定単位"] = df["認定"] * df["単位数_UTAS"]
